@@ -35,9 +35,12 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServoImpl;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.Servo;
+
 
 
 /*
@@ -64,6 +67,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
     private DcMotor BRMotor;
     private DcMotor BLMotor;
     private DcMotor Lift;
+    private DcMotor Climber;
 
     private DcMotor intakeMotor;
 
@@ -72,6 +76,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
     private Servo dispenser;
 
     int safePos;
+    int max=1500;
 
     @Override
     public void runOpMode() {
@@ -81,10 +86,12 @@ public class BasicOpMode_Linear extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        FRMotor  = hardwareMap.get(DcMotor.class, "FRMotor");
-        FLMotor = hardwareMap.get(DcMotor.class, "FLMotor");
-        BLMotor = hardwareMap.get(DcMotor.class, "BLMotor");
-        BRMotor = hardwareMap.get(DcMotor.class, "BRMotor");
+        FRMotor  = hardwareMap.get(DcMotorEx.class, "FrontRightMotor");
+        FLMotor = hardwareMap.get(DcMotor.class, "FrontLeftMotor");
+        BLMotor = hardwareMap.get(DcMotor.class, "BackLeftMotor");
+        BRMotor = hardwareMap.get(DcMotor.class, "BackRightMotor");
+
+        Climber = hardwareMap.get(DcMotor.class, "climb");
 
         intakeMotor = hardwareMap.get(DcMotor.class, "intake");
 
@@ -97,7 +104,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
         FRMotor.setDirection(DcMotor.Direction.REVERSE);
         BRMotor.setDirection(DcMotor.Direction.FORWARD);
-
+        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
@@ -116,9 +123,13 @@ public class BasicOpMode_Linear extends LinearOpMode {
 
             // POV Mode uses left stick to go forward, and right stick to turn.
             // - This uses basic math to combine motions and is easier to drive straight.
-            double drive = gamepad1.left_stick_y;
-            double turn  =  gamepad1.left_stick_x;
-            double rotate = gamepad1.right_stick_x;
+            double turn = -gamepad1.left_stick_y;
+            double drive  =  -gamepad1.left_stick_x;
+            double rotate = -gamepad1.right_stick_x;
+            boolean mSlideU=gamepad2.y;
+            boolean mSlideD=gamepad2.a;
+
+            boolean up =gamepad2.b;
 
             boolean intake = gamepad2.x;
             BLpower = Range.clip(-drive - turn +rotate, -1.0, 1.0) ;
@@ -131,17 +142,50 @@ public class BasicOpMode_Linear extends LinearOpMode {
             // leftPower  = -gamepad1.left_stick_y ;
             // rightPower = -gamepad1.right_stick_y ;
             if (intake){
-                intakeMotor.setPower(.75);
-                dispense();
+                climberdown();
+                //intakeMotor.setPower(.75);
+                //dispense();
+            }else{
+                intakeMotor.setPower(0);
+            }
+            if(gamepad1.a){
+                climberup();
+
+            }
+            if(gamepad1.b){
+                climberdown();
+
+            }
+            if(mSlideU){
+                slide(1);
+            }else if(mSlideD){
+                slide(-1);
+            }else{slide(0);}
+            if(up){
+                //slide(1);
+                //Lift.setTargetPosition(1400);
+                climberup();
+            }else{
+                Climber.setPower(0);
+            }
+            if(gamepad2.dpad_down){
+                Climber.setPower(1.);
             }
             // Send calculated power to wheels
             FLMotor.setPower(FLpower);
             BLMotor.setPower(BLpower);
             BRMotor.setPower(BRpower);
             FRMotor.setPower(FRpower);
+            //slide(mSlideU-mSlideD);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Status", "SlidePos"+ Lift.getCurrentPosition());
+            telemetry.addData("Status", "SlidePos"+ Climber.getCurrentPosition());
+
+            telemetry.addData("Status", "WristPos"+ wristServo.getPosition());
+            telemetry.addData("Status", "DispensePos"+ dispenser.getPosition());
+            telemetry.addData("Status", "Safe"+ LiftSafe());
             //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.update();
         }
@@ -153,5 +197,32 @@ public class BasicOpMode_Linear extends LinearOpMode {
             sleep(1000);
             dispenser.setPosition(0);
         }
+    }
+    public void slide(double pwr){
+        if(LiftSafe()){
+            Lift.setPower(pwr);
+        }
+
+
+    }
+    public boolean LiftSafe(){
+        if(Lift.getCurrentPosition()>=0&&Lift.getCurrentPosition()<=max){
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+    public void climberup(){
+        if(true) {
+            Climber.setTargetPosition(-18200);
+            Climber.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Climber.setPower(-1);
+        }
+    }
+    public void climberdown(){
+        Climber.setTargetPosition(-100);
+        Climber.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Climber.setPower(1);
     }
 }
