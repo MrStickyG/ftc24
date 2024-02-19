@@ -86,25 +86,38 @@ public class BasicOpMode_Linear extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        FRMotor  = hardwareMap.get(DcMotorEx.class, "FrontRightMotor");
+        FRMotor  = hardwareMap.get(DcMotor.class, "FrontRightMotor");
         FLMotor = hardwareMap.get(DcMotor.class, "FrontLeftMotor");
         BLMotor = hardwareMap.get(DcMotor.class, "BackLeftMotor");
         BRMotor = hardwareMap.get(DcMotor.class, "BackRightMotor");
+        Lift = hardwareMap.get(DcMotorEx.class, "Lift");
+        Climber = hardwareMap.get(DcMotorEx.class, "climb");
 
-        Climber = hardwareMap.get(DcMotor.class, "climb");
+        Lift.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        Climber.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        Lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Climber.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+
+        Climber.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        //Lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
 
         intakeMotor = hardwareMap.get(DcMotor.class, "intake");
 
         wristServo = hardwareMap.get(Servo.class, "wrist");
         dispenser = hardwareMap.get(Servo.class, "dispenser");
-        Lift = hardwareMap.get(DcMotor.class, "Lift");
+
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
         FRMotor.setDirection(DcMotor.Direction.REVERSE);
         BRMotor.setDirection(DcMotor.Direction.FORWARD);
-        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        intakeMotor.setDirection(DcMotor.Direction.REVERSE);
+        Climber.setDirection(DcMotorEx.Direction.REVERSE);
+        Lift.setDirection(DcMotorEx.Direction.REVERSE);
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
@@ -129,9 +142,10 @@ public class BasicOpMode_Linear extends LinearOpMode {
             boolean mSlideU=gamepad2.y;
             boolean mSlideD=gamepad2.a;
 
-            boolean up =gamepad2.b;
+            boolean up =gamepad1.y;
+            boolean down =gamepad1.a;
 
-            boolean intake = gamepad2.x;
+            boolean intake = gamepad1.y;
             BLpower = Range.clip(-drive - turn +rotate, -1.0, 1.0) ;
             FLpower = Range.clip(drive - turn - rotate, -1.0, 1.0) ;
             FRpower = Range.clip(drive + turn + rotate, -1.0, 1.0) ;
@@ -141,26 +155,48 @@ public class BasicOpMode_Linear extends LinearOpMode {
             // - This requires no math, but it is hard to drive forward slowly and keep straight.
             // leftPower  = -gamepad1.left_stick_y ;
             // rightPower = -gamepad1.right_stick_y ;
+            if(gamepad1.dpad_left){
+                wristServo.setPosition(.37);
+            }
+            if(Lift.getCurrentPosition()<-2500){
+                wristServo.setPosition(1);
+            }else{
+                wristServo.setPosition(.37);
+            }
+            if(gamepad1.dpad_right) {
+                dispenser.setPosition(.8);
+            }
+            if(gamepad1.dpad_down){
+                slide(0);
+                wristServo.setPosition(.4);
+                dispenser.setPosition(.8);
+            }
+            if(gamepad1.dpad_up){
+                dispense();
+            }
+            if(gamepad1.x){
+                slide(-3200);
+            }
             if (intake){
-                climberdown();
-                //intakeMotor.setPower(.75);
+                //climberdown();
+                intakeMotor.setPower(.75);
                 //dispense();
             }else{
                 intakeMotor.setPower(0);
             }
-            if(gamepad1.a){
+            if(up){
                 climberup();
 
             }
-            if(gamepad1.b){
+            if(down){
                 climberdown();
 
             }
-            if(mSlideU){
+            /*if(mSlideU){
                 slide(1);
             }else if(mSlideD){
                 slide(-1);
-            }else{slide(0);}
+            }else{slide(0);}*/
             if(up){
                 //slide(1);
                 //Lift.setTargetPosition(1400);
@@ -169,7 +205,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
                 Climber.setPower(0);
             }
             if(gamepad2.dpad_down){
-                Climber.setPower(1.);
+                Climber.setPower(1);
             }
             // Send calculated power to wheels
             FLMotor.setPower(FLpower);
@@ -192,15 +228,18 @@ public class BasicOpMode_Linear extends LinearOpMode {
 
     }
     public void dispense() {
-        if(Lift.getCurrentPosition()>safePos){
-            dispenser.setPosition(90);
+        if(Lift.getCurrentPosition()<1500){
+            dispenser.setPosition(0.7);
             sleep(1000);
-            dispenser.setPosition(0);
+            dispenser.setPosition(0.8);
         }
     }
-    public void slide(double pwr){
-        if(LiftSafe()){
-            Lift.setPower(pwr);
+   //control slides
+    public void slide(int pos){
+        if(true){
+            Lift.setTargetPosition(pos);
+            Lift.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+            Lift.setPower(1);
         }
 
 
@@ -215,14 +254,20 @@ public class BasicOpMode_Linear extends LinearOpMode {
     }
     public void climberup(){
         if(true) {
-            Climber.setTargetPosition(-18200);
-            Climber.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Climber.setPower(-1);
+            Climber.setPower(1);
+            Climber.setTargetPosition(-18000);
+            Climber.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+
+
         }
     }
     public void climberdown(){
-        Climber.setTargetPosition(-100);
-        Climber.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        Climber.setPower(1);
+        if (true) {
+            Climber.setPower(1);
+            Climber.setTargetPosition(-100);
+            Climber.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        }
+
+
     }
 }
