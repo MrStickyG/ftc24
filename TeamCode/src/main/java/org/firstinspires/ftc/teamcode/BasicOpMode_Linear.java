@@ -145,7 +145,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
             boolean up =gamepad1.y;
             boolean down =gamepad1.a;
 
-            boolean intake = gamepad1.y;
+            boolean intake = gamepad1.left_bumper;
             BLpower = Range.clip(-drive - turn +rotate, -1.0, 1.0) ;
             FLpower = Range.clip(drive - turn - rotate, -1.0, 1.0) ;
             FRpower = Range.clip(drive + turn + rotate, -1.0, 1.0) ;
@@ -161,15 +161,16 @@ public class BasicOpMode_Linear extends LinearOpMode {
             if(Lift.getCurrentPosition()<-2500){
                 wristServo.setPosition(1);
             }else{
-                wristServo.setPosition(.37);
+                wristServo.setPosition(.42);
+
             }
             if(gamepad1.dpad_right) {
-                dispenser.setPosition(.8);
+                dispenser.setPosition(.9);
             }
             if(gamepad1.dpad_down){
                 slide(0);
-                wristServo.setPosition(.4);
-                dispenser.setPosition(.8);
+                //wristServo.setPosition(0);
+                //dispenser.setPosition(.8);
             }
             if(gamepad1.dpad_up){
                 dispense();
@@ -197,16 +198,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
             }else if(mSlideD){
                 slide(-1);
             }else{slide(0);}*/
-            if(up){
-                //slide(1);
-                //Lift.setTargetPosition(1400);
-                climberup();
-            }else{
-                Climber.setPower(0);
-            }
-            if(gamepad2.dpad_down){
-                Climber.setPower(1);
-            }
+
             // Send calculated power to wheels
             FLMotor.setPower(FLpower);
             BLMotor.setPower(BLpower);
