@@ -30,10 +30,8 @@
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -55,9 +53,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Robot: Auto Drive By TimeRed", group="Robot")
+@Autonomous(name="Robot: Auto Drive By TimeBlue", group="Robot")
 //@Disabled
-public class RobotAutoDriveByTime_Linear extends LinearOpMode {
+public class RobotAutoDriveByTime_Blue extends LinearOpMode {
 
     /* Declare OpMode members. */
     private DcMotor FRMotor = null;
@@ -104,18 +102,18 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
         BLMotor.setPower(-FORWARD_SPEED);
         BRMotor.setPower(-FORWARD_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < .9)) {
+        while (opModeIsActive() && (runtime.seconds() < 1.06)) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
 
         // Step 2:  Spin right for 1.3 seconds
-        FLMotor.setPower(TURN_SPEED);
-        BLMotor.setPower(-TURN_SPEED);
-        FRMotor.setPower(TURN_SPEED);
-        BRMotor.setPower(-TURN_SPEED);
+        FLMotor.setPower(-TURN_SPEED);
+        BLMotor.setPower(TURN_SPEED);
+        FRMotor.setPower(-TURN_SPEED);
+        BRMotor.setPower(TURN_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < .15)) {
+        while (opModeIsActive() && (runtime.seconds() < .05)) {
             telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -129,12 +127,12 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
             telemetry.update();
         }
 
-        FLMotor.setPower(-TURN_SPEED);
-        BLMotor.setPower(TURN_SPEED);
-        FRMotor.setPower(-TURN_SPEED);
-        BRMotor.setPower(TURN_SPEED);
+        FLMotor.setPower(TURN_SPEED);
+        BLMotor.setPower(-TURN_SPEED);
+        FRMotor.setPower(TURN_SPEED);
+        BRMotor.setPower(-TURN_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < .05)) {
+        while (opModeIsActive() && (runtime.seconds() < .03)) {
             telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -148,12 +146,12 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
             telemetry.update();
         }
 
-        FLMotor.setPower(TURN_SPEED);
-        BLMotor.setPower(-TURN_SPEED);
-        FRMotor.setPower(TURN_SPEED);
-        BRMotor.setPower(-TURN_SPEED);
+        FLMotor.setPower(-TURN_SPEED);
+        BLMotor.setPower(TURN_SPEED);
+        FRMotor.setPower(-TURN_SPEED);
+        BRMotor.setPower(TURN_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < .40)) {
+        while (opModeIsActive() && (runtime.seconds() < .12)) {
             telemetry.addData("Path", "Leg 2: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }
@@ -163,7 +161,7 @@ public class RobotAutoDriveByTime_Linear extends LinearOpMode {
         BLMotor.setPower(-FORWARD_SPEED);
         BRMotor.setPower(-FORWARD_SPEED);
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < 1.69)) {
+        while (opModeIsActive() && (runtime.seconds() < 1.59)) {
             telemetry.addData("Path", "Leg 1: %4.1f S Elapsed", runtime.seconds());
             telemetry.update();
         }

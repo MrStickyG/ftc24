@@ -28,15 +28,10 @@
  */
 
 package org.firstinspires.ftc.teamcode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServoImpl;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -58,7 +53,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
 
-public class BasicOpMode_Linear extends LinearOpMode {
+public class BasicOpMode_LinearB extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -72,6 +67,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
     private DcMotor intakeMotor;
 
     private Servo wristServo;
+    private Servo shooter;
 
     private Servo dispenser;
 
@@ -108,6 +104,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
 
         wristServo = hardwareMap.get(Servo.class, "wrist");
         dispenser = hardwareMap.get(Servo.class, "dispenser");
+        shooter = hardwareMap.get(Servo.class, "shoot");
 
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
@@ -118,7 +115,8 @@ public class BasicOpMode_Linear extends LinearOpMode {
         intakeMotor.setDirection(DcMotor.Direction.REVERSE);
         Climber.setDirection(DcMotorEx.Direction.REVERSE);
         Lift.setDirection(DcMotorEx.Direction.REVERSE);
-        // Wait for the game to start (driver presses PLAY)
+        // Wait for the game to start (driver presses PLA
+        dispenser.setPosition(.75);
         waitForStart();
         runtime.reset();
 
@@ -130,58 +128,58 @@ public class BasicOpMode_Linear extends LinearOpMode {
             double FLpower;
             double FRpower;
             double BRpower;
-
+            double DConstant=1;
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
 
             // POV Mode uses left stick to go forward, and right stick to turn.
             // - This uses basic math to combine motions and is easier to drive straight.
-            double turn = -gamepad1.left_stick_y;
-            double drive  =  -gamepad1.left_stick_x;
+            double turn = -gamepad1.left_stick_x;
+            double drive  =  gamepad1.left_stick_y;
             double rotate = -gamepad1.right_stick_x;
             boolean mSlideU=gamepad2.y;
             boolean mSlideD=gamepad2.a;
-
+            boolean shoot=gamepad1.x && gamepad1.b;
             boolean up =gamepad1.y;
             boolean down =gamepad1.a;
 
             boolean intake = gamepad1.left_bumper;
-            BLpower = Range.clip(-drive - turn +rotate, -1.0, 1.0) ;
-            FLpower = Range.clip(drive - turn - rotate, -1.0, 1.0) ;
-            FRpower = Range.clip(drive + turn + rotate, -1.0, 1.0) ;
-            BRpower = Range.clip(-drive + turn - rotate, -1.0, 1.0) ;
+            if(Lift.getCurrentPosition()<-2250){
+                wristServo.setPosition(.90);
+                DConstant=.3;
+            }else{
+                wristServo.setPosition(.29);
+                DConstant=1;
+            }
+            BLpower = DConstant*Range.clip(-drive - turn +rotate, -1.0, 1.0) ;
+            FLpower = DConstant*Range.clip(drive - turn - rotate, -1.0, 1.0) ;
+            FRpower = DConstant*Range.clip(drive + turn + rotate, -1.0, 1.0) ;
+            BRpower = DConstant*Range.clip(-drive + turn - rotate, -1.0, 1.0) ;
 
             // Tank Mode uses one stick to control each wheel.
             // - This requires no math, but it is hard to drive forward slowly and keep straight.
             // leftPower  = -gamepad1.left_stick_y ;
             // rightPower = -gamepad1.right_stick_y ;
-            if(gamepad1.dpad_left){
-                wristServo.setPosition(.37);
-            }
-            if(Lift.getCurrentPosition()<-2500){
-                wristServo.setPosition(1);
-            }else{
-                wristServo.setPosition(.42);
 
-            }
-            if(gamepad1.dpad_right) {
-                dispenser.setPosition(.9);
-            }
-            if(gamepad1.dpad_down){
+
+
+            if(gamepad2.left_bumper){
                 slide(0);
                 //wristServo.setPosition(0);
                 //dispenser.setPosition(.8);
             }
-            if(gamepad1.dpad_up){
+            if(gamepad2.a){
                 dispense();
             }
-            if(gamepad1.x){
+            if(gamepad2.right_bumper){
                 slide(-3200);
             }
-            if (intake){
+            if (gamepad2.right_trigger>0){
                 //climberdown();
-                intakeMotor.setPower(.75);
+                intakeMotor.setPower(.53);
                 //dispense();
+            }else if(gamepad2.left_trigger>0){
+                intakeMotor.setPower(-.75);
             }else{
                 intakeMotor.setPower(0);
             }
@@ -209,7 +207,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Status", "SlidePos"+ Lift.getCurrentPosition());
-            telemetry.addData("Status", "SlidePos"+ Climber.getCurrentPosition());
+            telemetry.addData("Status", "climPos"+ Climber.getCurrentPosition());
 
             telemetry.addData("Status", "WristPos"+ wristServo.getPosition());
             telemetry.addData("Status", "DispensePos"+ dispenser.getPosition());
@@ -221,9 +219,9 @@ public class BasicOpMode_Linear extends LinearOpMode {
     }
     public void dispense() {
         if(Lift.getCurrentPosition()<1500){
-            dispenser.setPosition(0.7);
-            sleep(1000);
-            dispenser.setPosition(0.8);
+            dispenser.setPosition(0.55);
+            sleep(400);
+            dispenser.setPosition(.75);
         }
     }
    //control slides
@@ -256,7 +254,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
     public void climberdown(){
         if (true) {
             Climber.setPower(1);
-            Climber.setTargetPosition(-100);
+            Climber.setTargetPosition(-1000);
             Climber.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         }
 
