@@ -117,6 +117,7 @@ public class BasicOpMode_LinearB extends LinearOpMode {
         Lift.setDirection(DcMotorEx.Direction.REVERSE);
         // Wait for the game to start (driver presses PLA
         dispenser.setPosition(.75);
+        shooter.setPosition(.8);
         waitForStart();
         runtime.reset();
 
@@ -160,7 +161,9 @@ public class BasicOpMode_LinearB extends LinearOpMode {
             // - This requires no math, but it is hard to drive forward slowly and keep straight.
             // leftPower  = -gamepad1.left_stick_y ;
             // rightPower = -gamepad1.right_stick_y ;
-
+            if(shoot){
+                shooter.setPosition(0);
+            }
 
 
             if(gamepad2.left_bumper){
