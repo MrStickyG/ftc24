@@ -30,6 +30,8 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.CRServoImpl;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -60,10 +62,10 @@ public class NewMode extends LinearOpMode {
     private DcMotor FLMotor = null;
     private DcMotor BRMotor;
     private DcMotor BLMotor;
-    private DcMotorEx Pivot;
+    private DcMotor Pivot;
     private DcMotor Intake;
     private DcMotor Extension;
-    private Servo dispenser;
+    private CRServo dispenser;
 
 
 
@@ -79,18 +81,19 @@ public class NewMode extends LinearOpMode {
         FLMotor = hardwareMap.get(DcMotor.class, "FrontLeftMotor");
         BLMotor = hardwareMap.get(DcMotor.class, "BackLeftMotor");
         BRMotor = hardwareMap.get(DcMotor.class, "BackRightMotor");
-        Intake = hardwareMap.get(DcMotor.class, "Intake");
-        Pivot = hardwareMap.get(DcMotorEx.class, "Pivot");
+        //Intake = hardwareMap.get(Servo.class, "Intake");
+        Pivot = hardwareMap.get(DcMotor.class, "Pivot");
         Extension = hardwareMap.get(DcMotor.class, "exten");
-        dispenser = hardwareMap.get(Servo.class, "dispenser");
+        dispenser = hardwareMap.get(CRServo.class, "dispenser");
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        Pivot.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        Pivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Pivot.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        //Pivot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //Pivot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //Pivot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         FRMotor.setDirection(DcMotor.Direction.REVERSE);
+        BLMotor.setDirection(DcMotor.Direction.REVERSE);
         BRMotor.setDirection(DcMotor.Direction.FORWARD);
 
         // Wait for the game to start (driver presses START)
@@ -106,17 +109,18 @@ public class NewMode extends LinearOpMode {
             double FRpower;
             double BRpower;
             double DConstant=1;
-
+            int position=0;
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
 
             // POV Mode uses left stick to go forward, and right stick to turn.
             // - This uses basic math to combine motions and is easier to drive straight.
-            double turn = -gamepad1.left_stick_x;
+            double turn = gamepad1.left_stick_x;
             double drive  =  gamepad1.left_stick_y;
             double rotate = -gamepad1.right_stick_x;
 
-            boolean raise=gamepad1.a;
+            boolean raise=gamepad1.y;
+            boolean lower=gamepad1.a;
             float intake=gamepad1.left_trigger;
             float dispense=gamepad1.right_trigger;
             // Tank Mode uses one stick to control each wheel.
@@ -134,8 +138,30 @@ public class NewMode extends LinearOpMode {
             BRMotor.setPower(BRpower);
             FRMotor.setPower(FRpower);
 
+            if(gamepad1.dpad_left) {
+                Pivot.setPower(-1);
+                //position =Pivot.getCurrentPosition();
+            } else if (gamepad1.dpad_right){
+                Pivot.setPower(1);
+            }else{
+                Pivot.setPower(0);
+            }
+            if(gamepad1.dpad_up){
+                Extension.setPower(1);
+            } else if (gamepad1.dpad_down) {
+                Extension.setPower(-1);
+            }else{
+                Extension.setPower(0);
+            }
+            if(intake>.15){
+                dispenser.setPower(1);
+            } else if (dispense>.15) {
+                dispenser.setPower(-1);
+            }else{
+                dispenser.setPower(0);
+            }
             // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Status", "Run Time: " + Pivot.getCurrentPosition());
             //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.update();
         }
